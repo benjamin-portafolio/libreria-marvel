@@ -5,14 +5,18 @@ import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.openpay.libreriamarvel.VO.CharactersByIdInVO;
+
 import org.springframework.stereotype.Component;
 
 @Component
 public class LibreriaMarvelAppImpl implements LibreriaMarvelApp {
-	String urlBase="http://gateway.marvel.com/v1/public/comics?";
+	String urlBase="http://gateway.marvel.com/v1/public/comics";
 	@Override
 	public String getCharacters(String publicKey, String privateKey) {
-		String url= generarUrl(publicKey,privateKey);
+		String url= urlBase+generarParametrosUrl(publicKey,privateKey);
+		//System.out.println("URL**********   "+url);
 		WebClient.Builder builder = WebClient.builder();
 		String JSON = builder.build().get().uri(url).retrieve().bodyToMono(String.class).block();
 		
@@ -21,11 +25,11 @@ public class LibreriaMarvelAppImpl implements LibreriaMarvelApp {
 	
 	
 	
-	private String generarUrl(String publicKey, String privateKey) {
+	private String generarParametrosUrl(String publicKey, String privateKey) {
 		String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date());
 		String hash = generarHash(timeStamp+privateKey+publicKey);
 		
-		return urlBase+"ts="+timeStamp+"&apikey="+publicKey+"&hash="+hash;
+		return "?ts="+timeStamp+"&apikey="+publicKey+"&hash="+hash;
 	}
 
 	private String generarHash(String mensaje) {
@@ -43,6 +47,19 @@ public class LibreriaMarvelAppImpl implements LibreriaMarvelApp {
 		}
 		
 		return hexString.toString();
+	}
+
+
+
+	@Override
+	public String getCharactersById(CharactersByIdInVO charactersByIdInVO) {
+		charactersByIdInVO.getId().toString();
+		String url= urlBase+"/"+charactersByIdInVO.getId().toString()+
+				generarParametrosUrl(charactersByIdInVO.getPublicKey(),charactersByIdInVO.getPrivateKey());
+		//System.out.println("URL**********   "+url);
+		WebClient.Builder builder = WebClient.builder();
+		String JSON = builder.build().get().uri(url).retrieve().bodyToMono(String.class).block();
+		return JSON;
 	}
 
 }
